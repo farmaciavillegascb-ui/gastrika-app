@@ -112,6 +112,7 @@
             flex: 1;
         }
 
+        /* Barra superior fija */
         header {
             background-color: var(--primary-color);
             padding: 15px 30px;
@@ -120,6 +121,9 @@
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border-bottom: 3px solid var(--accent-gold);
+            position: sticky;
+            top: 0;
+            z-index: 100;
             flex-wrap: wrap;
             gap: 15px;
         }
@@ -131,6 +135,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            cursor: pointer;
         }
 
         .user-badge {
@@ -193,11 +198,15 @@
 
         /* Contenido Principal */
         main {
-            padding: 30px;
+            padding: 40px 20px;
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .section-title {
@@ -209,12 +218,120 @@
             letter-spacing: 1px;
         }
 
-        /* Estilo de Tarjetas / Botones de navegación central */
+        /* Vistas de Paneles Ocultas/Visibles */
+        .view-section {
+            display: none;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* Pantalla de Inicio: Botón Acceso Pacientes + Cruz de Farmacia */
+        #home-view.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .access-patients-btn {
+            background-color: var(--primary-dark);
+            color: white;
+            border: 2px solid var(--accent-gold);
+            padding: 16px 45px;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            margin-bottom: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .access-patients-btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(197, 160, 89, 0.3);
+        }
+
+        .pharmacy-cross-container {
+            background: linear-gradient(145deg, #244c49, #316d6a);
+            border: 4px solid var(--accent-gold);
+            border-radius: 30px;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .pharmacy-cross-container:hover {
+            transform: scale(1.03);
+        }
+
+        .pharmacy-cross {
+            position: relative;
+            width: 160px;
+            height: 160px;
+        }
+
+        .cross-vertical {
+            position: absolute;
+            top: 0;
+            left: 50px;
+            width: 60px;
+            height: 160px;
+            background: var(--accent-gold);
+            border-radius: 6px;
+        }
+
+        .cross-horizontal {
+            position: absolute;
+            top: 50px;
+            left: 0;
+            width: 160px;
+            height: 60px;
+            background: var(--accent-gold);
+            border-radius: 6px;
+        }
+
+        .cross-inner-icon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 56px;
+            z-index: 2;
+            color: var(--primary-dark);
+            text-shadow: 0 2px 4px rgba(255,255,255,0.4);
+        }
+
+        /* Listado de Pacientes */
         .grid-menu {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
             margin-top: 20px;
+            width: 100%;
         }
 
         .menu-card {
@@ -240,21 +357,7 @@
             font-size: 18px;
         }
 
-        /* Vistas de Paneles Ocultas/Visibles */
-        .view-section {
-            display: none;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid var(--border-color);
-        }
-
-        .view-section.active {
-            display: block;
-        }
-
-        /* Tablas */
+        /* Tablas y paneles */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -356,8 +459,9 @@
 
     <!-- APLICACIÓN PRINCIPAL -->
     <div id="app-container">
+        <!-- BARRA SUPERIOR FIJA -->
         <header>
-            <div class="brand">
+            <div class="brand" onclick="switchView('home-view')">
                 <span>➕ FARMACIA</span>
                 <span class="user-badge" id="display-role">Rol: Invitado</span>
             </div>
@@ -383,9 +487,22 @@
         </header>
 
         <main>
-            <!-- VISTA INICIAL: ACCESO PACIENTES -->
+            <!-- VISTA DE INICIO (Botón Acceso Pacientes + Cruz Decorativa) -->
             <div id="home-view" class="view-section active">
-                <h2 class="section-title">Acceso Pacientes</h2>
+                <button class="access-patients-btn" onclick="switchView('patients-list-view')">ACCESO PACIENTES</button>
+                <div class="pharmacy-cross-container" onclick="switchView('patients-list-view')">
+                    <div class="pharmacy-cross">
+                        <div class="cross-vertical"></div>
+                        <div class="cross-horizontal"></div>
+                        <div class="cross-inner-icon">⚕</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LISTADO DE PACIENTES -->
+            <div id="patients-list-view" class="view-section">
+                <button class="back-btn" onclick="switchView('home-view')">⬅ Volver al Inicio</button>
+                <h2 class="section-title">Listado de Pacientes</h2>
                 <div class="grid-menu">
                     <div class="menu-card" onclick="openPatient('123AGL', 'Albuto Gelan')">
                         <h3>123AGL</h3>
@@ -408,7 +525,7 @@
 
             <!-- VISTA DETALLE DE PACIENTE / TRATAMIENTOS -->
             <div id="patient-view" class="view-section">
-                <button class="back-btn" onclick="switchView('home-view')">⬅ Volver a Pacientes</button>
+                <button class="back-btn" onclick="switchView('patients-list-view')">⬅ Volver al Listado</button>
                 <h2 class="section-title" id="patient-title">Ficha de Paciente</h2>
                 <table>
                     <thead>
@@ -429,7 +546,6 @@
             <div id="pedidos-view" class="view-section">
                 <button class="back-btn" onclick="switchView('home-view')">⬅ Volver al Inicio</button>
                 <h2 class="section-title">Panel de Pedidos & DataMatrix</h2>
-                <p style="margin-bottom: 15px; font-size: 14px; color: #555;">Utilice el botón de escaneo simulado para leer el código DataMatrix e inyectar automáticamente C.N., Lote y Caducidad.</p>
                 <table>
                     <thead>
                         <tr>
@@ -454,21 +570,6 @@
                             </td>
                             <td>
                                 <input type="text" id="cad-1" placeholder="MM/AAAA" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; width: 90px;">
-                            </td>
-                            <td><button class="btn-action" onclick="alert('Pedido procesado correctamente')">Validar</button></td>
-                        </tr>
-                        <tr>
-                            <td>274SGV - Simon Gabarro</td>
-                            <td>Metformina 850mg recubierto</td>
-                            <td>6842011</td>
-                            <td>
-                                <div class="datamatrix-input-group">
-                                    <input type="text" id="lote-2" placeholder="Lote">
-                                    <button class="btn-scan" onclick="simulateDataMatrix(2)">📷 Leer</button>
-                                </div>
-                            </td>
-                            <td>
-                                <input type="text" id="cad-2" placeholder="MM/AAAA" style="padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; width: 90px;">
                             </td>
                             <td><button class="btn-action" onclick="alert('Pedido procesado correctamente')">Validar</button></td>
                         </tr>
@@ -500,14 +601,6 @@
                             <td>Revisión</td>
                             <td><button class="btn-action" onclick="resolveIncidence(this)">Comprobar / Resolver</button></td>
                         </tr>
-                        <tr>
-                            <td>111 ELE</td>
-                            <td>Eufemia López Espinosa</td>
-                            <td>Alprazolam 1mg comp.</td>
-                            <td>Modificar posología</td>
-                            <td>Ajustar dosis</td>
-                            <td><button class="btn-action" onclick="resolveIncidence(this)">Comprobar / Resolver</button></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -529,11 +622,9 @@
     </div>
 
     <script>
-        // Sistema de Login
         function handleLogin() {
             const user = document.getElementById('username').value.trim().toLowerCase();
             const pass = document.getElementById('password').value.trim();
-
             let roleName = '';
 
             if (user === 'farmacia' && pass === 'admin') {
@@ -543,7 +634,7 @@
             } else if (user === 'enfermero2' && pass === '4567') {
                 roleName = 'Enfermero 2';
             } else {
-                alert('Usuario o contraseña incorrectos. Compruebe los datos.');
+                alert('Usuario o contraseña incorrectos.');
                 return;
             }
 
@@ -560,14 +651,12 @@
             switchView('home-view');
         }
 
-        // Navegación entre vistas
         function switchView(viewId) {
             const sections = document.querySelectorAll('.view-section');
             sections.forEach(sec => sec.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
         }
 
-        // Abrir ficha de paciente
         function openPatient(code, name) {
             document.getElementById('patient-title').innerText = code + ' - ' + name.toUpperCase();
             const tbody = document.getElementById('patient-meds-list');
@@ -588,17 +677,14 @@
             switchView('patient-view');
         }
 
-        // Simulación pistola DataMatrix
         function simulateDataMatrix(id) {
             const lotesEjemplo = ['D24A2', 'A23B1', 'C24A8', 'L24A2'];
             const fechasEjemplo = ['10/2028', '12/2027', '05/2029', '03/2028'];
-            
             const randomIdx = Math.floor(Math.random() * lotesEjemplo.length);
             document.getElementById('lote-' + id).value = lotesEjemplo[randomIdx];
             document.getElementById('cad-' + id).value = fechasEjemplo[randomIdx];
         }
 
-        // Resolver incidencia
         function resolveIncidence(btn) {
             btn.style.backgroundColor = '#5cb85c';
             btn.innerText = 'Verificado / Resuelto ✓';
