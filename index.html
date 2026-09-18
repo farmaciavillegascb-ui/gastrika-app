@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GASTRIKA - Gestión Farmacéutica Residencial</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gastrikaGreen: '#2c5e5b',
+                        gastrikaGreenDark: '#1e3f3d',
+                        gastrikaGold: '#c5a059',
+                        gastrikaGoldLight: '#f4ede1',
+                        gastrikaBg: '#fbf9f5'
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fbf9f5;
+            background-image: radial-gradient(#e5ddd0 0.75px, transparent 0.75px);
+            background-size: 24px 24px;
+        }
+        .gold-border {
+            border: 2px solid #c5a059;
+            box-shadow: 0 4px 6px -1px rgba(197, 160, 89, 0.15), 0 2px 4px -1px rgba(197, 160, 89, 0.1);
+        }
+        .gold-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 2px solid #c5a059;
+            transition: all 0.3s ease;
+        }
+        .gold-card:hover {
+            box-shadow: 0 10px 20px -5px rgba(197, 160, 89, 0.3);
+            transform: translateY(-2px);
+        }
+        .nav-header {
+            background-color: #2c5e5b;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #d1c2a5;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1ebd9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c5a059;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 flex flex-col">
+
+    <header class="nav-header text-white sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-xl border border-gastrikaGold/50 text-gastrikaGold flex items-center justify-center">
+                    <i class="fa-solid fa-staff-aesculapius text-2xl"></i>
+                </div>
+                <div>
+                    <span class="font-cinzel font-bold text-xl tracking-wider text-white">FARMACIA</span>
+                    <span class="text-xs block text-gastrikaGold font-medium">Sistemas GASTRIKA WRL v3.4</span>
+                </div>
+            </div>
+
+            <!-- Top Statistics counters (Interactive to switch views) -->
+            <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+                <button onclick="switchTab('altasBajas')" class="stat-card px-3 py-1.5 flex items-center space-x-2 text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-user-plus text-gastrikaGreen"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-500 font-semibold uppercase leading-none">Alta paciente</div>
+                        <div id="badgeAltas" class="text-base font-bold text-gray-900 leading-tight">0</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('altasBajas')" class="stat-card px-3 py-1.5 flex items-center space-x-2 text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-user-minus text-red-600"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-500 font-semibold uppercase leading-none">Baja Paciente</div>
+                        <div id="badgeBajas" class="text-base font-bold text-gray-900 leading-tight">2</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('pedidos')" class="stat-card px-3 py-1.5 flex items-center space-x-2 text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-cart-shopping text-gastrikaGreen"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-500 font-semibold uppercase leading-none">Pedido</div>
+                        <div id="badgePedidos" class="text-base font-bold text-gray-900 leading-tight">3</div>
+                    </div>
+                </button>
+
+                <button onclick="switchTab('incidencias')" class="stat-card px-3 py-1.5 flex items-center space-x-2 text-gray-700 hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                    <div class="text-left">
+                        <div class="text-[10px] text-gray-500 font-semibold uppercase leading-none">Incidencias</div>
+                        <div id="badgeIncidencias" class="text-base font-bold text-gray-900 leading-tight">7</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Role Selector Control -->
+            <div class="flex items-center bg-gastrikaGreenDark px-3 py-1.5 rounded-lg border border-gastrikaGold/40 shadow-inner">
+                <span class="text-xs text-gastrikaGold mr-2 font-semibold uppercase"><i class="fa-solid fa-user-shield mr-1"></i> Rol:</span>
+                <select id="roleSelector" onchange="changeRole(this.value)" class="bg-white text-gray-800 text-xs font-semibold px-2.5 py-1 rounded focus:outline-none focus:ring-2 focus:ring-gastrikaGold">
+                    <option value="farmacia">💊 FARMACIA (Acceso Total)</option>
+                    <option value="enfermero1">🩺 ENFERMERO/A 1</option>
+                    <option value="enfermero2">💉 ENFERMERO/A 2</option>
+                    <option value="residencia">🏢 RESIDENCIA (Altas/Bajas)</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-gray-200 py-2 px-4 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-start gap-2">
+            <button onclick="switchTab('home')" id="btn-home" class="px-4 py-2 text-sm font-semibold rounded-lg bg-gastrikaGreen text-white transition flex items-center space-x-2">
+                <i class="fa-solid fa-house"></i><span>Inicio</span>
+            </button>
+            <button onclick="switchTab('pacientes')" id="btn-pacientes" class="px-4 py-2 text-sm font-semibold rounded-lg text-gray-700 hover:bg-gastrikaGoldLight transition flex items-center space-x-2">
+                <i class="fa-solid fa-users-medical"></i><span>Acceso Pacientes</span>
+            </button>
+            <button onclick="switchTab('pedidos')" id="btn-pedidos" class="px-4 py-2 text-sm font-semibold rounded-lg text-gray-700 hover:bg-gastrikaGoldLight transition flex items-center space-x-2">
+                <i class="fa-solid fa-boxes-packing"></i><span>Pedidos & DataMatrix</span>
+            </button>
+            <button onclick="switchTab('incidencias')" id="btn-incidencias" class="px-4 py-2 text-sm font-semibold rounded-lg text-gray-700 hover:bg-gastrikaGoldLight transition flex items-center space-x-2">
+                <i class="fa-solid fa-triangle-exclamation"></i><span>Incidencias Globales</span>
+            </button>
+            <button onclick="switchTab('altasBajas')" id="btn-altasBajas" class="px-4 py-2 text-sm font-semibold rounded-lg text-gray-700 hover:bg-gastrikaGoldLight transition flex items-center space-x-2">
+                <i class="fa-solid fa-user-gear"></i><span>Altas / Bajas Pacientes</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+        
+        <!-- Role Notice Banner -->
+        <div id="roleBanner" class="mb-6 bg-gastrikaGold/10 border-l-4 border-gastrikaGold p-4 rounded-r-xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-circle-info text-gastrikaGold text-xl"></i>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-900" id="roleBannerTitle">Panel de Farmacia Activo</h4>
+                    <p class="text-xs text-gray-600" id="roleBannerDesc">Tienes privilegios completos para prepedidos, validaciones, altas/bajas e incidencias.</p>
+                </div>
+            </div>
+            <button onclick="openScannerModal()" class="bg-gastrikaGreen text-white text-xs px-3 py-2 rounded-lg font-semibold shadow hover:bg-gastrikaGreenDark flex items-center space-x-1">
+                <i class="fa-solid fa-barcode"></i><span>Simular Pistola DataMatrix</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: HOME DASHBOARD -->
+        <section id="tab-home" class="space-y-6">
+            <div class="text-center py-8">
+                <div class="inline-block p-6 rounded-3xl bg-white gold-border mb-4 relative shadow-lg">
+                    <div class="absolute -top-3 -right-3 bg-gastrikaGold text-white text-xs px-2.5 py-1 rounded-full font-bold">ACTIVO</div>
+                    <i class="fa-solid fa-staff-aesculapius text-6xl text-gastrikaGreen"></i>
+                </div>
+                <h2 class="font-cinzel text-3xl font-bold text-gray-900 tracking-wide">ACCESO PACIENTES & GESTIÓN</h2>
+                <p class="text-sm text-gray-600 mt-1">Seleccione un paciente o módulo para comenzar con la validación de medicación blister</p>
+            </div>
+
+            <!-- Quick Access Cards for Patients -->
+            <div class="bg-white p-6 rounded-2xl gold-border shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-cinzel text-xl font-bold text-gastrikaGreenDark flex items-center space-x-2">
+                        <i class="fa-solid fa-address-book text-gastrikaGold"></i><span>PACIENTES REGISTRADOS EN RESIDENCIA</span>
+                    </h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchPatientHome" onkeyup="filterHomePatients()" placeholder="Buscar paciente..." class="text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-gastrikaGold">
+                        <button onclick="switchTab('pacientes')" class="text-xs bg-gastrikaGold text-white px-3 py-2 rounded-lg font-semibold hover:bg-amber-700 transition">Ver Todos</button>
+                    </div>
+                </div>
+
+                <div id="homePatientCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic patient cards injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PACIENTES LIST & TREATMENT CHECKBOXES -->
+        <section id="tab-pacientes" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl gold-border shadow-md">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b pb-4">
+                    <div>
+                        <h2 class="font-cinzel text-2xl font-bold text-gastrikaGreenDark">LISTADO DE PACIENTES Y TRATAMIENTOS</h2>
+                        <p class="text-xs text-gray-500">Gestión de pre-pedidos y pedidos definitivos por enfermería</p>
+                    </div>
+                    <div class="flex items-center space-x-3 w-full md:w-auto">
+                        <select id="patientSelectDropdown" onchange="selectPatientDetail(this.value)" class="w-full md:w-64 text-sm border-2 border-gastrikaGold rounded-lg p-2 font-semibold bg-gastrikaGoldLight text-gray-800">
+                            <!-- Options injected -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Patient Details View Area -->
+                <div id="patientDetailContainer" class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <!-- Dynamic Treatment Table -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PEDIDOS & DATAMATRIX CONTROL -->
+        <section id="tab-pedidos" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl gold-border shadow-md">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="font-cinzel text-2xl font-bold text-gastrikaGreenDark">SOLICITUD PEDIDO FUERA DE BLISTER & DATAMATRIX</h2>
+                        <p class="text-xs text-gray-500">Control estricto de Código Nacional (C.N.), Lote y Caducidad leídos mediante pistola</p>
+                    </div>
+                    <button onclick="openScannerModal()" class="bg-gastrikaGreen text-white text-xs px-4 py-2.5 rounded-lg font-semibold shadow hover:bg-gastrikaGreenDark flex items-center space-x-2">
+                        <i class="fa-solid fa-barcode text-gastrikaGold text-base"></i><span>Escanear Código DataMatrix</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-gray-300">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gastrikaGreen text-white text-xs uppercase font-semibold">
+                                <th class="p-3">Código Paciente</th>
+                                <th class="p-3">Nombre Paciente</th>
+                                <th class="p-3">Fecha EN</th>
+                                <th class="p-3">Medicamento</th>
+                                <th class="p-3">C.N.</th>
+                                <th class="p-3">Lote / Caducidad</th>
+                                <th class="p-3 text-center">Estado Farmacia</th>
+                                <th class="p-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody" class="text-sm divide-y divide-gray-200 bg-white">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: INCIDENCIAS GLOBALES -->
+        <section id="tab-incidencias" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl gold-border shadow-md">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="font-cinzel text-2xl font-bold text-gastrikaGreenDark">INCIDENCIAS_RESIDENCIA GLOBAL</h2>
+                        <p class="text-xs text-gray-500">Farmacia crea incidencias -> Enfermería comprueba/resuelve -> Farmacia valida</p>
+                    </div>
+                    <button onclick="openNewIncidenceModal()" id="btnNewIncidence" class="bg-gastrikaGold text-white text-xs px-4 py-2 rounded-lg font-semibold hover:bg-amber-700 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i><span>Nueva Incidencia (Farmacia)</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-gray-300">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gastrikaGreen text-white text-xs uppercase font-semibold">
+                                <th class="p-3">Cód. Paciente</th>
+                                <th class="p-3">Paciente</th>
+                                <th class="p-3">Fecha EN</th>
+                                <th class="p-3">C.N. / Medicación</th>
+                                <th class="p-3">Tipo Incidencia</th>
+                                <th class="p-3">Observaciones</th>
+                                <th class="p-3 text-center">Resolución Enfermería</th>
+                                <th class="p-3 text-center">Validación Farmacia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidencesTableBody" class="text-sm divide-y divide-gray-200 bg-white">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: ALTAS Y BAJAS DE PACIENTES -->
+        <section id="tab-altasBajas" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Solicitud Box (Residencia / Farmacia) -->
+                <div class="bg-white p-6 rounded-2xl gold-border shadow-md space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="font-cinzel text-xl font-bold text-gastrikaGreenDark flex items-center space-x-2">
+                            <i class="fa-solid fa-user-plus text-gastrikaGold"></i><span>Solicitud Alta / Baja Paciente</span>
+                        </h3>
+                        <span id="roleNoticeTag" class="text-xs bg-gastrikaGold/20 text-amber-800 px-2.5 py-1 rounded font-bold">Residencia / Farmacia</span>
+                    </div>
+                    <form id="altaBajaForm" onsubmit="handleAltaBajaSubmit(event)" class="space-y-4 text-sm">
+                        <div>
+                            <label class="block font-semibold text-xs text-gray-700 mb-1">Tipo de Solicitud:</label>
+                            <select id="reqType" class="w-full p-2.5 border rounded-lg font-medium bg-gray-50 focus:ring-2 focus:ring-gastrikaGold">
+                                <option value="alta">Alta de Paciente Nuevo</option>
+                                <option value="baja">Baja / Traslado de Paciente</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-xs text-gray-700 mb-1">Código Paciente (Ej: 145XYZ):</label>
+                                <input type="text" id="reqCode" required placeholder="Ej: 134ALV" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-gastrikaGold uppercase">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-xs text-gray-700 mb-1">Fecha Solicitud:</label>
+                                <input type="date" id="reqDate" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-gastrikaGold">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-xs text-gray-700 mb-1">Nombre Completo del Paciente:</label>
+                            <input type="text" id="reqName" required placeholder="Apellidos y Nombre" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-gastrikaGold">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-xs text-gray-700 mb-1">Motivo / Tratamiento Inicial:</label>
+                            <textarea id="reqMotivo" rows="2" placeholder="Observaciones clínicas..." class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-gastrikaGold"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-gastrikaGreen hover:bg-gastrikaGreenDark text-white font-semibold py-2.5 rounded-lg transition shadow">
+                            Enviar Solicitud a Farmacia
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Pending Approvals Box (Farmacia Validation) -->
+                <div class="bg-white p-6 rounded-2xl gold-border shadow-md space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="font-cinzel text-xl font-bold text-gastrikaGreenDark flex items-center space-x-2">
+                            <i class="fa-solid fa-clipboard-check text-gastrikaGold"></i><span>Validación Farmacia (Altas/Bajas)</span>
+                        </h3>
+                        <span class="text-xs bg-gastrikaGreen/10 text-gastrikaGreen px-2.5 py-1 rounded font-bold">Panel Farmacéutico</span>
+                    </div>
+                    <div id="pendingRequestsList" class="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- DataMatrix Barcode Scanner Modal Simulator -->
+    <div id="scannerModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full gold-border p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-cinzel font-bold text-lg text-gastrikaGreenDark flex items-center space-x-2">
+                    <i class="fa-solid fa-barcode text-gastrikaGold"></i><span>Pistola Lectora DataMatrix (Simulador)</span>
+                </h3>
+                <button onclick="closeScannerModal()" class="text-gray-400 hover:text-gray-700 text-lg font-bold">&times;</button>
+            </div>
+            <p class="text-xs text-gray-600">Simule la lectura del código DataMatrix del envase farmacéutico para rellenar automáticamente el <strong>Código Nacional (C.N.)</strong>, <strong>Lote</strong> y <strong>Caducidad</strong>.</p>
+            
+            <div class="bg-gray-900 text-green-400 font-mono p-4 rounded-xl text-xs space-y-2 border border-gastrikaGold/50">
+                <div class="flex items-center justify-between text-gray-400 border-b border-gray-700 pb-1">
+                    <span>SCANNER ESTADO: LÁSER ACTIVO</span>
+                    <span class="animate-pulse text-red-500 font-bold">● RECIBIENDO</span>
+                </div>
+                <div id="scannerStreamText" class="h-16 overflow-hidden flex flex-col justify-end">
+                    <span>> Apuntando a DataMatrix...</span>
+                    <span>> Esperando decodificación GS1...</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Seleccionar Pedido / Medicamento a Rellenar:</label>
+                    <select id="scanTargetOrder" class="w-full p-2 border rounded-lg font-medium">
+                        <!-- Options injected -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">C.N. (6-7 dígitos):</label>
+                        <input type="text" id="simCN" class="w-full p-2 border rounded font-mono font-bold text-center bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Lote:</label>
+                        <input type="text" id="simLote" class="w-full p-2 border rounded font-mono font-bold text-center bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Caducidad:</label>
+                        <input type="text" id="simCad" class="w-full p-2 border rounded font-mono font-bold text-center bg-gray-50" placeholder="MM/AA">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-3 border-t">
+                <button onclick="closeScannerModal()" class="px-4 py-2 border rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-100">Cancelar</button>
+                <button onclick="applyScannedData()" class="px-5 py-2 bg-gastrikaGreen hover:bg-gastrikaGreenDark text-white text-xs font-semibold rounded-lg shadow">Asignar al Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Incidence Modal -->
+    <div id="incidenceModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full gold-border p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-cinzel font-bold text-lg text-gastrikaGreenDark flex items-center space-x-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i><span>Crear Nueva Incidencia</span>
+                </h3>
+                <button onclick="closeNewIncidenceModal()" class="text-gray-400 hover:text-gray-700 text-lg font-bold">&times;</button>
+            </div>
+            <form onsubmit="handleNewIncidence(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Paciente:</label>
+                    <select id="incPatientSelect" class="w-full p-2 border rounded-lg font-medium">
+                        <!-- Injected -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Tipo de Incidencia:</label>
+                    <select id="incType" class="w-full p-2 border rounded-lg font-medium">
+                        <option value="Medicación adelantada">Medicación adelantada</option>
+                        <option value="Modificar posología">Modificar posología / ajustar</option>
+                        <option value="Abastecimiento">Abastecimiento / Rotura stock</option>
+                        <option value="Lo consume? comprobar">Lo consume? comprobar</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Observaciones / Instrucciones:</label>
+                    <textarea id="incObs" rows="3" required placeholder="Detalles de la incidencia..." class="w-full p-2 border rounded-lg"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeNewIncidenceModal()" class="px-4 py-2 border rounded-lg font-semibold text-gray-600">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-gastrikaGold hover:bg-amber-700 text-white font-semibold rounded-lg shadow">Crear Incidencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-gastrikaGold">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-gastrikaGold text-lg"></i>
+        <span id="toastMsg" class="text-xs font-medium">Acción realizada correctamente.</span>
+    </div>
+
+    <script>
+        // Application State Data modeled from Excel & UI specs
+        let appState = {
+            currentRole: 'farmacia', // 'farmacia', 'enfermero1', 'enfermero2', 'residencia'
+            patients: [
+                {
+                    code: '123AGL',
+                    name: 'Albuto Gelan',
+                    treatments: [
+                        { med: 'Eutirox 25 microgramos comp. 400', cn: '6980892', order: true, incidence: false },
+                        { med: 'Metformina 850mg comp. 30 comp.', cn: '6842011', order: true, incidence: false },
+                        { med: 'Atorvastatina 20mg comp. 28 comp.', cn: '7103301', order: false, incidence: false },
+                        { med: 'Omeprazol 20mg cápsula gastrorresistente 56 cáps.', cn: '6511001', order: true, incidence: false }
+                    ]
+                },
+                {
+                    code: '274SGV',
+                    name: 'Simon Gabarro Villegas',
+                    treatments: [
+                        { med: 'Bisoprolol 2.5mg comp.', cn: '6754321', order: true, incidence: false },
+                        { med: 'Lorazepam 1mg comp.', cn: '6543210', order: false, incidence: true },
+                        { med: 'Paracetamol 1g comp.', cn: '6987654', order: true, incidence: false }
+                    ]
+                },
+                {
+                    code: '125AGL',
+                    name: 'Alberto Gabarro Laureano',
+                    treatments: [
+                        { med: 'Eutirox 25 microgramos comprimido 400', cn: '6980892', order: true, incidence: true },
+                        { med: 'Metformina 850mg comprimido recubierto 30 comp.', cn: '6842011', order: true, incidence: false },
+                        { med: 'Atorvastatina 20mg comprimido 28 comp.', cn: '7103301', order: false, incidence: false },
+                        { med: 'Omeprazol 20mg cápsula dura gastrorresistente 56 cáps.', cn: '6511001', order: true, incidence: false }
+                    ]
+                },
+                {
+                    code: '117ELR',
+                    name: 'Eugenia Lozano Ruiz',
+                    treatments: [
+                        { med: 'Donepezilo 5mg comp.', cn: '6660847', order: true, incidence: true }
+                    ]
+                },
+                {
+                    code: '111ELE',
+                    name: 'Eufemia López Espinosa',
+                    treatments: [
+                        { med: 'Alprazolam 1mg comp.', cn: '7910619', order: true, incidence: true }
+                    ]
+                },
+                {
+                    code: '123FMR',
+                    name: 'Felicidad Martínez Rodríguez',
+                    treatments: [
+                        { med: 'Doporio 25/100 comp.', cn: '7261650', order: true, incidence: true },
+                        { med: 'Acfol 5mg comp.', cn: '6924327', order: true, incidence: false }
+                    ]
+                }
+            ],
+            orders: [
+                { id: 1, code: '117 ELR', name: 'Eugenia Lozano Ruiz', date: '09/03/26', med: 'Donepezilo 5mg comp.', cn: '6660847', lote: 'D24A2', status: 'Validado Farmacia' },
+                { id: 2, code: '111 ELE', name: 'Eufemia López Espinosa', date: '04/03/26', med: 'Alprazolam 1mg comp.', cn: '7910619', lote: 'A23B1', status: 'Validado Farmacia' },
+                { id: 3, code: '123 FMR', name: 'Felicidad Martinez Rodriguez', date: '03/03/26', med: 'Doporio 25/100 comp.', cn: '7261650', lote: 'Abastecimiento', status: 'Pendiente Revisión' },
+                { id: 4, code: '001 AGN', name: 'ANGEL GRANDE NUÑEZ', date: '09/09/26', med: 'SILODOSINA 8mg caps.', cn: '7261650', lote: '02444', status: 'Pendiente Farmacia' },
+                { id: 5, code: 'ALBERTO GABARRO', name: 'ALBERTO GABARRO LAUREANO', date: '09/09/26', med: 'Eutirox 25 microgr.', cn: '6990892', lote: 'D24A3', status: 'Validado Farmacia' }
+            ],
+            incidences: [
+                { id: 101, code: '117 ELR', name: 'Eugenia Lozano Ruiz', date: '09/03/26', cn: '6860847', med: 'Donepezilo 5mg comp.', type: 'Medicación adelantada', obs: 'revisión', resolvedNurse: true, validatedPharmacy: false },
+                { id: 102, code: '111 ELE', name: 'Eufemia López Espinosa', date: '04/03/26', cn: '7910619', med: 'Alprazolam 1mg comp.', type: 'Modificar posología', obs: 'ajustar', resolvedNurse: true, validatedPharmacy: true },
+                { id: 103, code: '123 FMR', name: 'Felicidad Martínez Rodríguez', date: '03/03/26', cn: '7261650', med: 'Doporio 25/100 comp.', type: 'Abastecimiento', obs: 'NO ME LO TRAE NADIE', resolvedNurse: false, validatedPharmacy: false },
+                { id: 104, code: '141 LRL', name: 'Rojano Lara, Luisa', date: '04/03/26', cn: '6924327', med: 'Acfol 5mg comp.', type: 'Lo consume?', obs: 'comprobar', resolvedNurse: true, validatedPharmacy: false },
+                { id: 105, code: 'ALBERTO G.', name: 'ALBERTO GABARRO LAUREANO', date: '09/09/26', cn: '6980892', med: 'Eutirox 25 microgr.', type: 'Medicación adelantada', obs: 'proceder', resolvedNurse: true, validatedPharmacy: true }
+            ],
+            altasBajas: [
+                { id: 1, type: 'baja', code: '204SGV', name: 'Simón Gabarro (Traslado)', date: '2026-03-15', motivo: 'Cambio de centro sociosanitario', status: 'Pendiente Farmacia' },
+                { id: 2, type: 'baja', code: '198MTP', name: 'María Teresa Pérez', date: '2026-03-10', motivo: 'Alta hospitalaria definitiva', status: 'Pendiente Farmacia' }
+            ],
+            selectedPatientDetailCode: '123AGL'
+        };
+
+        // Initialization on Load
+        window.onload = function() {
+            renderAll();
+            // Set default date for requests
+            document.getElementById('reqDate').valueAsDate = new Date();
+        };
+
+        // Switch Tabs Function
+        function switchTab(tabId) {
+            const tabs = ['home', 'pacientes', 'pedidos', 'incidencias', 'altasBajas'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`btn-${t}`);
+                if (el) el.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-gastrikaGreen', 'text-white');
+                    btn.classList.add('text-gray-700', 'hover:bg-gastrikaGoldLight');
+                }
+            });
+
+            const activeEl = document.getElementById(`tab-${tabId}`);
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700', 'hover:bg-gastrikaGoldLight');
+                activeBtn.classList.add('bg-gastrikaGreen', 'text-white');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Change Role Function
+        function changeRole(role) {
+            appState.currentRole = role;
+            const titles = {
+                farmacia: "Panel de Farmacia Activo (Acceso Total)",
+                enfermero1: "Panel de Enfermero/a 1 (Selección de Pedidos & Validación de Incidencias)",
+                enfermero2: "Panel de Enfermero/a 2 (Selección de Pedidos & Validación de Incidencias)",
+                residencia: "Panel de Residencia (Solicitudes de Altas y Bajas)"
+            };
+            const descs = {
+                farmacia: "Privilegios completos para prepedidos, validaciones de farmacia, altas/bajas e incidencias.",
+                enfermero1: "Acceso a listado de pacientes, marcado de pedidos definitivos e inspección de incidencias.",
+                enfermero2: "Acceso a listado de pacientes, marcado de pedidos definitivos e inspección de incidencias.",
+                residencia: "Formularios activos para la solicitud de altas y bajas de pacientes residentes."
+            };
+            document.getElementById('roleBannerTitle').innerText = titles[role];
+            document.getElementById('roleBannerDesc').innerText = descs[role];
+            
+            // Adjust UI permissions
+            const btnInc = document.getElementById('btnNewIncidence');
+            if(role === 'residencia') {
+                switchTab('altasBajas');
+                if(btnInc) btnInc.style.display = 'none';
+            } else if(role.startsWith('enfermero')) {
+                if(btnInc) btnInc.style.display = 'none';
+            } else {
+                if(btnInc) btnInc.style.display = 'inline-flex';
+            }
+
+            showToast(`Rol cambiado a: ${role.toUpperCase()}`);
+            renderAll();
+        }
+
+        // Render All Components
+        function renderAll() {
+            renderCounters();
+            renderHomePatients();
+            renderPatientDropdown();
+            renderPatientDetailView();
+            renderOrdersTable();
+            renderIncidencesTable();
+            renderAltasBajasPanel();
+            renderScannerDropdown();
+        }
+
+        // Update Top Badges
+        function renderCounters() {
+            const pendingAltasBajas = appState.altasBajas.filter(x => x.status === 'Pendiente Farmacia').length;
+            const totalBajas = appState.altasBajas.filter(x => x.type === 'baja').length;
+            const totalPedidos = appState.orders.length;
+            const totalIncidencias = appState.incidences.length;
+
+            document.getElementById('badgeAltas').innerText = pendingAltasBajas;
+            document.getElementById('badgeBajas').innerText = totalBajas;
+            document.getElementById('badgePedidos').innerText = totalPedidos;
+            document.getElementById('badgeIncidencias').innerText = totalIncidencias;
+        }
+
+        // Render Home Patient Cards
+        function renderHomePatients(filter = '') {
+            const container = document.getElementById('homePatientCards');
+            container.innerHTML = '';
+
+            const filtered = appState.patients.filter(p => 
+                p.code.toLowerCase().includes(filter.toLowerCase()) || 
+                p.name.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 col-span-3 text-center py-4">No se encontraron pacientes.</p>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl border-2 border-gastrikaGold/60 hover:shadow-lg transition cursor-pointer flex flex-col justify-between";
+                card.onclick = () => {
+                    appState.selectedPatientDetailCode = p.code;
+                    document.getElementById('patientSelectDropdown').value = p.code;
+                    switchTab('pacientes');
+                    renderPatientDetailView();
+                };
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-gastrikaGreen text-white text-xs px-2.5 py-1 rounded font-mono font-bold">${p.code}</span>
+                        <span class="text-[10px] text-gray-400 font-medium">${p.treatments.length} Tratamientos</span>
+                    </div>
+                    <h4 class="font-bold text-gray-800 text-sm mb-3">${p.name}</h4>
+                    <div class="text-[11px] text-gastrikaGreen font-semibold flex items-center justify-end space-x-1">
+                        <span>Ver Ficha y Tratamiento</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterHomePatients() {
+            const val = document.getElementById('searchPatientHome').value;
+            renderHomePatients(val);
+        }
+
+        // Render Patient Dropdown for Detail Tab
+        function renderPatientDropdown() {
+            const select = document.getElementById('patientSelectDropdown');
+            select.innerHTML = '';
+            appState.patients.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code;
+                opt.innerText = `${p.code} - ${p.name}`;
+                if(p.code === appState.selectedPatientDetailCode) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        function selectPatientDetail(code) {
+            appState.selectedPatientDetailCode = code;
+            renderPatientDetailView();
+        }
+
+        // Render Patient Detail Treatment Table (matching image reference 3)
+        function renderPatientDetailView() {
+            const container = document.getElementById('patientDetailContainer');
+            const patient = appState.patients.find(p => p.code === appState.selectedPatientDetailCode) || appState.patients[0];
+            if(!patient) return;
+
+            let html = `
+                <div class="bg-white p-6 rounded-2xl gold-border shadow-md space-y-4">
+                    <div class="border-b-2 border-gastrikaGold pb-3 text-center">
+                        <h3 class="font-cinzel text-xl font-bold text-gray-900">${patient.code} - ${patient.name.toUpperCase()}</h3>
+                        <span class="text-xs text-gastrikaGreen font-semibold">Prepedido y Verificación de Blister</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gastrikaGreen text-white text-xs uppercase">
+                                    <th class="p-3 border">Medicamento</th>
+                                    <th class="p-3 border text-center">C.N.</th>
+                                    <th class="p-3 border text-center">Pedido (Definitivo)</th>
+                                    <th class="p-3 border text-center">Incidencia</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+            `;
+
+            patient.treatments.forEach((t, index) => {
+                const isNurse = appState.currentRole.startsWith('enfermero');
+                const isDisabled = (appState.currentRole === 'residencia');
+                
+                html += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 border font-medium text-gray-800">${t.med}</td>
+                        <td class="p-3 border font-mono text-center text-gray-600">${t.cn}</td>
+                        <td class="p-3 border text-center">
+                            <input type="checkbox" ${t.order ? 'checked' : ''} ${isDisabled ? 'disabled' : ''} 
+                                onchange="toggleTreatmentOrder('${patient.code}', ${index}, this.checked)"
+                                class="w-5 h-5 accent-gastrikaGreen cursor-pointer">
+                        </td>
+                        <td class="p-3 border text-center">
+                            <input type="checkbox" ${t.incidence ? 'checked' : ''} ${isDisabled ? 'disabled' : ''} 
+                                onchange="toggleTreatmentIncidence('${patient.code}', ${index}, this.checked)"
+                                class="w-5 h-5 accent-amber-600 cursor-pointer">
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500 pt-2">
+                        <span>* Los enfermeros pueden seleccionar medicamentos del prepedido para pasarlos a pedido definitivo.</span>
+                        <button onclick="showToast('Cambios guardados correctamente')" class="bg-gastrikaGreen text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-gastrikaGreenDark">
+                            Guardar Cambios Paciente
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function toggleTreatmentOrder(patientCode, index, val) {
+            const p = appState.patients.find(x => x.code === patientCode);
+            if(p && p.treatments[index]) {
+                p.treatments[index].order = val;
+                showToast(`Pedido actualizado para ${p.name}`);
+            }
+        }
+
+        function toggleTreatmentIncidence(patientCode, index, val) {
+            const p = appState.patients.find(x => x.code === patientCode);
+            if(p && p.treatments[index]) {
+                p.treatments[index].incidence = val;
+                showToast(`Incidencia marcada para ${p.name}`);
+            }
+        }
+
+        // Render Orders Table with C.N., Lote, Caducidad (DataMatrix simulated)
+        function renderOrdersTable() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '';
+
+            appState.orders.forEach((o, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 border-b";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-gastrikaGreen">${o.code}</td>
+                    <td class="p-3 font-medium text-gray-800">${o.name}</td>
+                    <td class="p-3 text-gray-500 text-xs">${o.date}</td>
+                    <td class="p-3 text-gray-800 font-medium">${o.med}</td>
+                    <td class="p-3 font-mono text-gray-700">${o.cn}</td>
+                    <td class="p-3 font-mono text-xs font-bold text-amber-700 bg-amber-50 rounded">${o.lote}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${o.status === 'Validado Farmacia' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="openScannerModalForOrder(${idx})" title="Escanear DataMatrix" class="bg-gastrikaGreen text-white px-2.5 py-1.5 rounded text-xs hover:bg-gastrikaGreenDark"><i class="fa-solid fa-barcode"></i></button>
+                        ${appState.currentRole === 'farmacia' && o.status !== 'Validado Farmacia' ? `
+                            <button onclick="validateOrder(${idx})" title="Validar Farmacia" class="bg-gastrikaGold text-white px-2.5 py-1.5 rounded text-xs hover:bg-amber-700"><i class="fa-solid fa-check"></i></button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function validateOrder(index) {
+            appState.orders[index].status = 'Validado Farmacia';
+            showToast(`Pedido #${appState.orders[index].id} validado por Farmacia.`);
+            renderOrdersTable();
+            renderCounters();
+        }
+
+        // Render Incidences Global Table
+        function renderIncidencesTable() {
+            const tbody = document.getElementById('incidencesTableBody');
+            tbody.innerHTML = '';
+
+            appState.incidences.forEach((inc, idx) => {
+                const canNurseResolve = appState.currentRole.startsWith('enfermero') || appState.currentRole === 'farmacia';
+                const canFarmaciaValidate = appState.currentRole === 'farmacia';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 border-b";
+                tr.innerHTML = `
+                    <td class="p-3 font-mono font-bold text-gastrikaGreen">${inc.code}</td>
+                    <td class="p-3 font-medium text-gray-800">${inc.name}</td>
+                    <td class="p-3 text-gray-500 text-xs">${inc.date}</td>
+                    <td class="p-3 font-mono text-xs"><span class="font-bold">${inc.cn}</span><br>${inc.med}</td>
+                    <td class="p-3 font-semibold text-gray-700 text-xs">${inc.type}</td>
+                    <td class="p-3 text-gray-600 text-xs italic">"${inc.obs}"</td>
+                    <td class="p-3 text-center">
+                        <button onclick="toggleNurseResolve(${idx})" ${!canNurseResolve ? 'disabled' : ''} 
+                            class="px-3 py-1 rounded text-xs font-semibold ${inc.resolvedNurse ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}">
+                            ${inc.resolvedNurse ? '✓ Resuelta (Enfermería)' : 'Pendiente Comprobar'}
+                        </button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="toggleFarmaciaValidateInc(${idx})" ${!canFarmaciaValidate || !inc.resolvedNurse ? 'disabled' : ''} 
+                            class="px-3 py-1 rounded text-xs font-semibold ${inc.validatedPharmacy ? 'bg-gastrikaGreen text-white' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}">
+                            ${inc.validatedPharmacy ? '✓ Validada Farmacia' : (inc.resolvedNurse ? 'Validar Farmacia' : 'Esperando Enfermera')}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleNurseResolve(idx) {
+            appState.incidences[idx].resolvedNurse = !appState.incidences[idx].resolvedNurse;
+            showToast('Estado de resolución por enfermería actualizado.');
+            renderIncidencesTable();
+        }
+
+        function toggleFarmaciaValidateInc(idx) {
+            if(!appState.incidences[idx].resolvedNurse) {
+                showToast('La incidencia debe ser resuelta por enfermería primero.');
+                return;
+            }
+            appState.incidences[idx].validatedPharmacy = !appState.incidences[idx].validatedPharmacy;
+            showToast('Validación de farmacia actualizada.');
+            renderIncidencesTable();
+        }
+
+        // Render Altas / Bajas Panel
+        function renderAltasBajasPanel() {
+            const container = document.getElementById('pendingRequestsList');
+            container.innerHTML = '';
+
+            if(appState.altasBajas.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">No hay solicitudes pendientes.</p>';
+                return;
+            }
+
+            appState.altasBajas.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col space-y-2";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase px-2 py-0.5 rounded ${item.type === 'alta' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            Solicitud de ${item.type}
+                        </span>
+                        <span class="text-xs font-mono text-gray-500">${item.date}</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-gray-900">${item.code} - ${item.name}</div>
+                        <p class="text-xs text-gray-600 mt-1">Motivo: ${item.motivo}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t">
+                        <span class="text-xs font-semibold text-amber-700">${item.status}</span>
+                        ${appState.currentRole === 'farmacia' && item.status === 'Pendiente Farmacia' ? `
+                            <button onclick="approveAltaBaja(${idx})" class="bg-gastrikaGreen text-white text-xs px-3 py-1.5 rounded font-semibold hover:bg-gastrikaGreenDark">
+                                Validar y Procesar
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function handleAltaBajaSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('reqType').value;
+            const code = document.getElementById('reqCode').value.toUpperCase();
+            const date = document.getElementById('reqDate').value;
+            const name = document.getElementById('reqName').value;
+            const motivo = document.getElementById('reqMotivo').value;
+
+            appState.altasBajas.push({
+                id: Date.now(),
+                type, code, name, date, motivo, status: 'Pendiente Farmacia'
+            });
+
+            // Ifalta, also add to patients
+            if(type === 'alta') {
+                appState.patients.push({
+                    code, name, treatments: [
+                        { med: 'Tratamiento base inicial comp.', cn: '6000001', order: true, incidence: false }
+                    ]
+                });
+            }
+
+            showToast(`Solicitud de ${type} enviada a Farmacia con éxito.`);
+            document.getElementById('altaBajaForm').reset();
+            document.getElementById('reqDate').valueAsDate = new Date();
+            renderAll();
+        }
+
+        function approveAltaBaja(idx) {
+            appState.altasBajas[idx].status = 'Aprobado y Validado';
+            showToast('Solicitud procesada y validada por farmacia.');
+            renderAll();
+        }
+
+        // DataMatrix Barcode Scanner Simulation
+        function openScannerModal() {
+            document.getElementById('scannerModal').classList.remove('hidden');
+            // Simulate scanner stream
+            const streamBox = document.getElementById('scannerStreamText');
+            setTimeout(() => {
+                streamBox.innerHTML += '<span>> Detectado código GS1 DataMatrix (01)0847000...</span>';
+                document.getElementById('simCN').value = '698' + Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('simLote').value = 'L' + Math.floor(10 + Math.random() * 89) + 'X' + Math.floor(1 + Math.random() * 9);
+                document.getElementById('simCad').value = '12/28';
+            }, 600);
+        }
+
+        function openScannerModalForOrder(orderIdx) {
+            openScannerModal();
+            document.getElementById('scanTargetOrder').value = orderIdx;
+        }
+
+        function closeScannerModal() {
+            document.getElementById('scannerModal').classList.add('hidden');
+        }
+
+        function renderScannerDropdown() {
+            const select = document.getElementById('scanTargetOrder');
+            select.innerHTML = '';
+            appState.orders.forEach((o, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.innerText = `[${o.code}] ${o.name} - ${o.med}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function applyScannedData() {
+            const idx = document.getElementById('scanTargetOrder').value;
+            const cn = document.getElementById('simCN').value;
+            const lote = document.getElementById('simLote').value;
+            const cad = document.getElementById('simCad').value;
+
+            if(idx !== '' && appState.orders[idx]) {
+                appState.orders[idx].cn = cn;
+                appState.orders[idx].lote = `${lote} (Cad: ${cad})`;
+                showToast(`Datos DataMatrix inyectados en pedido de ${appState.orders[idx].name}`);
+            }
+            closeScannerModal();
+            renderOrdersTable();
+        }
+
+        // New Incidence Modal Management
+        function openNewIncidenceModal() {
+            document.getElementById('incidenceModal').classList.remove('hidden');
+            const select = document.getElementById('incPatientSelect');
+            select.innerHTML = '';
+            appState.patients.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code;
+                opt.innerText = `${p.code} - ${p.name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function closeNewIncidenceModal() {
+            document.getElementById('incidenceModal').classList.add('hidden');
+        }
+
+        function handleNewIncidence(e) {
+            e.preventDefault();
+            const code = document.getElementById('incPatientSelect').value;
+            const patient = appState.patients.find(p => p.code === code);
+            const type = document.getElementById('incType').value;
+            const obs = document.getElementById('incObs').value;
+
+            appState.incidences.unshift({
+                id: Date.now(),
+                code: patient.code,
+                name: patient.name,
+                date: new Date().toLocaleDateString(),
+                cn: patient.treatments[0]?.cn || '600000',
+                med: patient.treatments[0]?.med || 'Medicación general',
+                type,
+                obs,
+                resolvedNurse: false,
+                validatedPharmacy: false
+            });
